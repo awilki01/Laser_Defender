@@ -7,6 +7,7 @@ public class EnemySpawner : MonoBehaviour {
     public float width;
     public float height;
     public float speed;
+    public float spawnDelay;
 
     private bool movingRight = true;
     private float xmax;
@@ -20,13 +21,15 @@ public class EnemySpawner : MonoBehaviour {
         Vector3 rightBoundary = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, distanceToCamera));
         xmax = rightBoundary.x;
         xmin = LeftBoundary.x;
-        
+        /*
         foreach (Transform child in transform) {
             GameObject enemy = Instantiate(enemyPrefab, child.transform.position, Quaternion.identity) as GameObject;
 
             // this puts the spawned enemy ship under the Position pre-fab in editor
-            enemy.transform.parent = child;           
-        }
+            enemy.transform.parent = child;   
+         }
+         */
+         SpawnUntilFull();     
 	}
 
     public void OnDrawGizmos() {
@@ -48,5 +51,46 @@ public class EnemySpawner : MonoBehaviour {
         } else if (rightEdgeOfFormation > xmax) {
             movingRight = false;
         }
+        if (AllMembersDead()) {
+            SpawnUntilFull();
+        }
 	}
+
+    private bool AllMembersDead() {
+        foreach(Transform childPositionGameObject in transform) {
+            if (childPositionGameObject.childCount > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void SpawnEnemies() {
+        foreach (Transform child in this.transform) {
+            GameObject enemy = Instantiate(enemyPrefab, child.transform.position, Quaternion.identity) as GameObject;
+            // this puts the spawned enemy ship under the Position pre-fab in editor
+            enemy.transform.parent = child;
+        }
+    }
+
+    private void SpawnUntilFull() {
+        Transform freePosition = NextFreePosition();
+        if (freePosition != null) {
+            GameObject enemy = Instantiate(enemyPrefab, freePosition.transform.position, Quaternion.identity) as GameObject;
+            // this puts the spawned enemy ship under the Position pre-fab in editor
+            enemy.transform.parent = freePosition;
+        }
+        if (NextFreePosition() != null) {
+            Invoke("SpawnUntilFull", spawnDelay);
+        }                  
+    }
+
+    private Transform NextFreePosition() {
+        foreach (Transform childPositionGameObject in transform) {
+            if (childPositionGameObject.childCount == 0) {
+                return childPositionGameObject;
+            }
+        }
+        return null;
+    } 
 }
