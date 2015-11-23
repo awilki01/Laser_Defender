@@ -8,6 +8,7 @@ public class EnemySpawner : MonoBehaviour {
     public float height;
     public float speed;
     public float spawnDelay;
+    public float beginningLevel;
 
     private bool movingRight = true;
     private float xmax;
@@ -53,6 +54,8 @@ public class EnemySpawner : MonoBehaviour {
         }
         if (AllMembersDead()) {
             SpawnUntilFull();
+            // this increases after each level...it is used by the Enemy class to increase fire rate per level
+            beginningLevel ++;
         }
 	}
 

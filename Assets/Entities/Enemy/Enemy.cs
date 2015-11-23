@@ -12,18 +12,25 @@ public class Enemy : MonoBehaviour {
     public AudioClip explosionSound;
     public AudioClip fireSound;
     public AudioClip deathSound;
+    public AudioClip enemyHitSound;
 
     private ScoreKeeper scoreKeeper;
+    private EnemySpawner spawnerLevel;
 
     void Start() {
         scoreKeeper = GameObject.Find("Score").GetComponent<ScoreKeeper>();
         explosionSound = GameObject.FindObjectOfType<AudioClip>();
+        spawnerLevel = GameObject.FindObjectOfType<EnemySpawner>();
+
+        //shots per second increases with level
+        shotsPerSecond = spawnerLevel.beginningLevel / 3;
     }
 
     void OnTriggerEnter2D(Collider2D collision) {       
         Projectile missile = collision.gameObject.GetComponent<Projectile>();
         if (missile && missile.tag != "EnemyLaser") {
             missile.Hit();
+            AudioSource.PlayClipAtPoint(enemyHitSound, transform.position);
             scoreKeeper.Score(hitValue);            
             health -= missile.GetDamage();                                  
             if (health <= 0) {

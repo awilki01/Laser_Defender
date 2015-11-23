@@ -7,20 +7,20 @@ public class PlayerController : MonoBehaviour {
     public float padding;
     public float projectileSpeed;
     public float firingRate;
-    public float health;
+    public float health = 500;
     public int projectileCost = 25;
     public GameObject projectile;
     public AudioClip fireSound;
-    public AudioClip deathSound;
+    public AudioClip playerHitSound;  
 
     private float xmin;
     private float xmax;
     private float newX;
     private ScoreKeeper scoreKeeper;
+    private ShieldStrength shields;
 
 	// Use this for initialization
 	void Start () {
-
         //Calculate edge of camera view to set ship boundaries
         float distance = transform.position.z - Camera.main.transform.position.z;
         Vector3 leftmost = Camera.main.ViewportToWorldPoint(new Vector3(0,0, distance));
@@ -28,7 +28,9 @@ public class PlayerController : MonoBehaviour {
         xmin = leftmost.x + padding;
         xmax = rightmost.x - padding;
 
-        scoreKeeper = GameObject.FindObjectOfType<ScoreKeeper>();
+        scoreKeeper = GameObject.FindObjectOfType<ScoreKeeper>();        
+        shields = GameObject.FindObjectOfType<ShieldStrength>();        
+        shields.Shields(health);
     }
 	
 	// Update is called once per frame
@@ -70,12 +72,22 @@ public class PlayerController : MonoBehaviour {
         Projectile missile = collision.gameObject.GetComponent<Projectile>();
         if (missile && missile.tag == "EnemyLaser") {            
             missile.Hit();
+            AudioSource.PlayClipAtPoint(playerHitSound, transform.position);
             health -= missile.GetDamage();
-            if (health <= 0) {
-                AudioSource.PlayClipAtPoint(deathSound, transform.position);
-                Destroy(this.gameObject);
-            }
+            if (health < 0) {
+                Die();
+            } 
+            // Had to add this because the health showed -100 in the frame right before it move to win screen
+            if (health >= 0) {
+               shields.Shields(health);
+            }           
         }
+    }
+
+    void Die() {        
+        LevelManager man = GameObject.Find("LevelManager").GetComponent<LevelManager>();
+        man.LoadLevel("Win Screen");
+        Destroy(this.gameObject);
     }
 
 }
